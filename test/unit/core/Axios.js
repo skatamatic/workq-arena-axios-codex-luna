@@ -1,4 +1,5 @@
 import Axios from "../../../lib/core/Axios.js";
+import axios from "../../../lib/axios.js";
 import assert from "assert";
 
 describe('Axios', function () {
@@ -44,4 +45,37 @@ describe('Axios', function () {
       })
     });
   })
+
+  it('should build a URI without constructor configuration', function () {
+    const instance = new axios.Axios();
+
+    assert.strictEqual(instance.getUri({url: '/ping'}), '/ping');
+  });
+
+  it('should preserve constructor defaults when building a URI', function () {
+    const axios = new Axios({
+      baseURL: 'https://example.com',
+      params: {default: 'value'}
+    });
+
+    assert.strictEqual(axios.getUri({url: '/ping', params: {query: 'value'}}), 'https://example.com/ping?default=value&query=value');
+  });
+
+  it('should use a function paramsSerializer when building a URI', function () {
+    assert.strictEqual(axios.getUri({
+      url: '/search',
+      params: {q: 'hello'},
+      paramsSerializer: () => 'custom=yes'
+    }), '/search?custom=yes');
+  });
+
+  it('should use an object paramsSerializer when building a URI', function () {
+    assert.strictEqual(axios.getUri({
+      url: '/search',
+      params: {q: 'hello'},
+      paramsSerializer: {
+        serialize: () => 'object=yes'
+      }
+    }), '/search?object=yes');
+  });
 });
