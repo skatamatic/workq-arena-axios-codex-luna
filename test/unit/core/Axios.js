@@ -1,7 +1,38 @@
 import Axios from "../../../lib/core/Axios.js";
+import axios from "../../../lib/axios.js";
 import assert from "assert";
 
 describe('Axios', function () {
+  describe('getUri', function () {
+    it('should use a function paramsSerializer', function () {
+      assert.strictEqual(axios.getUri({
+        url: '/search',
+        params: {q: 'hello'},
+        paramsSerializer: () => 'custom=yes'
+      }), '/search?custom=yes');
+    });
+
+    it('should work without constructor configuration', function () {
+      assert.strictEqual(new Axios().getUri({url: '/ping'}), '/ping');
+    });
+
+    it('should preserve explicit defaults and object-form serializers', function () {
+      const instance = new Axios({
+        baseURL: 'https://api.example.com',
+        params: {token: 'default'}
+      });
+
+      assert.strictEqual(instance.getUri({
+        url: '/search',
+        params: {q: 'hello'},
+        paramsSerializer: {
+          serialize: () => 'custom=yes'
+        }
+      }), 'https://api.example.com/search?custom=yes');
+      assert.strictEqual(instance.getUri({url: '/search'}), 'https://api.example.com/search?token=default');
+    });
+  });
+
   describe("handle un-writable error stack", function () {
     async function testUnwritableErrorStack(stackAttributes) {
       const axios = new Axios({});
