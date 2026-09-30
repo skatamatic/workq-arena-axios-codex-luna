@@ -2,6 +2,41 @@ import Axios from "../../../lib/core/Axios.js";
 import assert from "assert";
 
 describe('Axios', function () {
+  describe('getUri', function () {
+    it('should use a function paramsSerializer', function () {
+      const axios = new Axios({});
+
+      assert.strictEqual(axios.getUri({
+        url: '/search',
+        params: {q: 'hello'},
+        paramsSerializer: () => 'custom=yes'
+      }), '/search?custom=yes');
+    });
+
+    it('should support instances without a configuration', function () {
+      const axios = new Axios();
+
+      assert.strictEqual(axios.getUri({url: '/ping'}), '/ping');
+    });
+
+    it('should preserve configured defaults and object serializers', function () {
+      const axios = new Axios({baseURL: 'https://api.example.com', params: {token: 'abc'}});
+
+      assert.strictEqual(axios.getUri({
+        url: '/search',
+        params: {q: 'hello'}
+      }), 'https://api.example.com/search?token=abc&q=hello');
+
+      const customSerializerAxios = new Axios({
+        paramsSerializer: {
+          serialize: () => 'custom=yes'
+        }
+      });
+
+      assert.strictEqual(customSerializerAxios.getUri({url: '/search', params: {q: 'hello'}}), '/search?custom=yes');
+    });
+  });
+
   describe("handle un-writable error stack", function () {
     async function testUnwritableErrorStack(stackAttributes) {
       const axios = new Axios({});
